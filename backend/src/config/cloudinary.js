@@ -1,0 +1,13 @@
+// 
+import { v2 as cloudinary } from "cloudinary";
+
+export const cloudinaryConnect = () => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET,
+  });
+};
+
+// ✅ Named export so we can use cloudinary.uploader.destroy etc.
+export { cloudinary };
