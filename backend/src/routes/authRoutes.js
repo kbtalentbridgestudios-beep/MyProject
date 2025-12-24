@@ -925,35 +925,274 @@
 // export default router;
 
 
+// import express from "express";
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
+// import { v4 as uuidv4 } from "uuid";
+
+// import Candidate from "../models/Candidate.js";
+// import Employer from "../models/Employer.js";
+// import Admin from "../models/Admin.js";
+// // import Verification from "../models/Verification.js";
+// // import { generateOTP } from "../utils/otp.js";
+// // import { sendEmailOTP } from "../utils/sendOTP.js";
+
+// const router = express.Router();
+
+// // Utility: generate JWT
+// const generateToken = (user, role) => {
+//   return jwt.sign({ user: { id: user._id, role } }, process.env.JWT_SECRET, {
+//     expiresIn: "1d",
+//   });
+// };
+
+// // 🚫 OTP SYSTEM REMOVED — createVerificationRecord DISABLED
+// // async function createVerificationRecord() {
+// //   return null;
+// // }
+
+// // -------------------------
+// // Candidate Registration (NO OTP)
+// // -------------------------
+// router.post("/register/candidate", async (req, res) => {
+//   try {
+//     const {
+//       firstName,
+//       lastName,
+//       dateOfBirth,
+//       category,
+//       address,
+//       mobile,
+//       city,
+//       state,
+//       email,
+//       password,
+//     } = req.body;
+
+//     if (!firstName || !lastName || !email || !password)
+//       return res.status(400).json({ message: "Required fields missing" });
+
+//     const existingCandidate = await Candidate.findOne({ email }).lean();
+//     const existingEmployer = await Employer.findOne({ email }).lean();
+//     if (existingCandidate || existingEmployer)
+//       return res.status(400).json({ message: "Email already registered" });
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const candidate = new Candidate({
+//       firstName,
+//       lastName,
+//       dateOfBirth,
+//       category,
+//       address,
+//       mobile,
+//       city,
+//       state,
+//       email,
+//       password: hashedPassword,
+//       isVerified: true, // DIRECT VERIFY
+//     });
+
+//     await candidate.save();
+
+//     return res.status(201).json({
+//       message: "Candidate registered successfully (OTP disabled)",
+//     });
+//   } catch (error) {
+//     console.error("register/candidate error:", error);
+//     return res.status(500).json({ message: "Server error", error });
+//   }
+// });
+
+// // -------------------------
+// // Employer Registration (NO OTP)
+// // -------------------------
+// router.post("/register/employer", async (req, res) => {
+//   try {
+//     const {
+//       companyName,
+//       mobile,
+//       email,
+//       yearOfEstablishment,
+//       password,
+//       gstNumber,
+//       websiteLink,
+//       address,
+//       city,
+//       state,
+//       district,
+//       vacancy,
+//     } = req.body;
+
+//     if (!companyName || !email || !password)
+//       return res.status(400).json({ message: "Required fields missing" });
+
+//     const existingEmployer = await Employer.findOne({ email }).lean();
+//     const existingCandidate = await Candidate.findOne({ email }).lean();
+//     if (existingEmployer || existingCandidate)
+//       return res.status(400).json({ message: "Email already registered" });
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const employer = new Employer({
+//       companyName,
+//       mobile,
+//       email,
+//       yearOfEstablishment,
+//       password: hashedPassword,
+//       gstNumber,
+//       websiteLink,
+//       address,
+//       city,
+//       state,
+//       district,
+//       vacancy,
+//       isVerified: true, // DIRECT VERIFY
+//     });
+
+//     await employer.save();
+
+//     return res.status(201).json({
+//       message: "Employer registered successfully (OTP disabled)",
+//     });
+//   } catch (error) {
+//     console.error("register/employer error:", error);
+//     return res.status(500).json({ message: "Server error", error });
+//   }
+// });
+
+// // 🚫 REMOVE SEND OTP ROUTE
+// // router.post("/send-otp", ... );
+
+// // 🚫 REMOVE VERIFY OTP ROUTE
+// // router.post("/verify-otp", ... );
+
+// // -------------------------
+// // Universal Login
+// // -------------------------
+// router.post("/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     if (!email || !password)
+//       return res.status(400).json({ message: "Email and password required" });
+
+//     let user = await Candidate.findOne({ email });
+//     let role = "candidate";
+
+//     if (!user) {
+//       user = await Employer.findOne({ email });
+//       role = "employer";
+//     }
+
+//     if (!user) return res.status(400).json({ message: "User not found" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+//     const token = generateToken(user, role);
+
+//     res.status(200).json({
+//       message: `${role} logged in successfully`,
+//       token,
+//       role,
+//       user:
+//         role === "candidate"
+//           ? {
+//               id: user._id,
+//               firstName: user.firstName,
+//               lastName: user.lastName,
+//               email: user.email,
+//               category: user.category,
+//             }
+//           : {
+//               id: user._id,
+//               companyName: user.companyName,
+//               email: user.email,
+//             },
+//     });
+//   } catch (error) {
+//     console.error("login error:", error);
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// });
+
+// // -------------------------
+// // Admin Login
+// // -------------------------
+// router.post("/login/admin", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const admin = await Admin.findOne({ email });
+//     if (!admin) return res.status(400).json({ message: "Admin not found" });
+
+//     const isMatch = await bcrypt.compare(password, admin.password);
+//     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+//     const token = jwt.sign({ user: { id: admin._id, role: "admin" } }, process.env.JWT_SECRET, {
+//       expiresIn: "1d",
+//     });
+
+//     res.status(200).json({
+//       message: "Admin logged in successfully",
+//       token,
+//       role: "admin",
+//       user: { id: admin._id, name: admin.name, email: admin.email },
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
+
+// export default router;
+
+
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
 
 import Candidate from "../models/Candidate.js";
 import Employer from "../models/Employer.js";
 import Admin from "../models/Admin.js";
-// import Verification from "../models/Verification.js";
-// import { generateOTP } from "../utils/otp.js";
-// import { sendEmailOTP } from "../utils/sendOTP.js";
 
 const router = express.Router();
 
-// Utility: generate JWT
+/* ======================================================
+   🔥 ROUTE-LEVEL CORS FIX (VERY IMPORTANT)
+   ====================================================== */
+router.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+/* ======================================================
+   UTILITY: GENERATE JWT
+   ====================================================== */
 const generateToken = (user, role) => {
-  return jwt.sign({ user: { id: user._id, role } }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  return jwt.sign(
+    { user: { id: user._id, role } },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
 };
 
-// 🚫 OTP SYSTEM REMOVED — createVerificationRecord DISABLED
-// async function createVerificationRecord() {
-//   return null;
-// }
-
-// -------------------------
-// Candidate Registration (NO OTP)
-// -------------------------
+/* ======================================================
+   CANDIDATE REGISTRATION (NO OTP)
+   ====================================================== */
 router.post("/register/candidate", async (req, res) => {
   try {
     const {
@@ -969,13 +1208,16 @@ router.post("/register/candidate", async (req, res) => {
       password,
     } = req.body;
 
-    if (!firstName || !lastName || !email || !password)
+    if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ message: "Required fields missing" });
+    }
 
-    const existingCandidate = await Candidate.findOne({ email }).lean();
-    const existingEmployer = await Employer.findOne({ email }).lean();
-    if (existingCandidate || existingEmployer)
+    const existingCandidate = await Candidate.findOne({ email });
+    const existingEmployer = await Employer.findOne({ email });
+
+    if (existingCandidate || existingEmployer) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -990,23 +1232,23 @@ router.post("/register/candidate", async (req, res) => {
       state,
       email,
       password: hashedPassword,
-      isVerified: true, // DIRECT VERIFY
+      isVerified: true,
     });
 
     await candidate.save();
 
-    return res.status(201).json({
-      message: "Candidate registered successfully (OTP disabled)",
+    res.status(201).json({
+      message: "Candidate registered successfully",
     });
   } catch (error) {
     console.error("register/candidate error:", error);
-    return res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// -------------------------
-// Employer Registration (NO OTP)
-// -------------------------
+/* ======================================================
+   EMPLOYER REGISTRATION (NO OTP)
+   ====================================================== */
 router.post("/register/employer", async (req, res) => {
   try {
     const {
@@ -1024,13 +1266,16 @@ router.post("/register/employer", async (req, res) => {
       vacancy,
     } = req.body;
 
-    if (!companyName || !email || !password)
+    if (!companyName || !email || !password) {
       return res.status(400).json({ message: "Required fields missing" });
+    }
 
-    const existingEmployer = await Employer.findOne({ email }).lean();
-    const existingCandidate = await Candidate.findOne({ email }).lean();
-    if (existingEmployer || existingCandidate)
+    const existingEmployer = await Employer.findOne({ email });
+    const existingCandidate = await Candidate.findOne({ email });
+
+    if (existingEmployer || existingCandidate) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -1047,34 +1292,32 @@ router.post("/register/employer", async (req, res) => {
       state,
       district,
       vacancy,
-      isVerified: true, // DIRECT VERIFY
+      isVerified: true,
     });
 
     await employer.save();
 
-    return res.status(201).json({
-      message: "Employer registered successfully (OTP disabled)",
+    res.status(201).json({
+      message: "Employer registered successfully",
     });
   } catch (error) {
     console.error("register/employer error:", error);
-    return res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// 🚫 REMOVE SEND OTP ROUTE
-// router.post("/send-otp", ... );
-
-// 🚫 REMOVE VERIFY OTP ROUTE
-// router.post("/verify-otp", ... );
-
-// -------------------------
-// Universal Login
-// -------------------------
+/* ======================================================
+   UNIVERSAL LOGIN (CANDIDATE + EMPLOYER)
+   ====================================================== */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ message: "Email and password required" });
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password required" });
+    }
 
     let user = await Candidate.findOne({ email });
     let role = "candidate";
@@ -1084,10 +1327,14 @@ router.post("/login", async (req, res) => {
       role = "employer";
     }
 
-    if (!user) return res.status(400).json({ message: "User not found" });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const token = generateToken(user, role);
 
@@ -1112,35 +1359,46 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("login error:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// -------------------------
-// Admin Login
-// -------------------------
+/* ======================================================
+   ADMIN LOGIN
+   ====================================================== */
 router.post("/login/admin", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(400).json({ message: "Admin not found" });
+    if (!admin) {
+      return res.status(400).json({ message: "Admin not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ user: { id: admin._id, role: "admin" } }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { user: { id: admin._id, role: "admin" } },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.status(200).json({
       message: "Admin logged in successfully",
       token,
       role: "admin",
-      user: { id: admin._id, name: admin.name, email: admin.email },
+      user: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+      },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error", error: err.message });
+  } catch (error) {
+    console.error("admin login error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
