@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin } from "lucide-react";
 import axios from "axios";
 
+// ✅ BASE URL FROM ENV
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export default function ContactUs() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
@@ -19,13 +22,16 @@ export default function ContactUs() {
 
     try {
       const res = await axios.post(
-        "https://my-backend-knk9.onrender.com/api/contact", // ✅ your Render backend URL
+        `${BASE_URL}/api/contact`,
         form
       );
 
       if (res.status === 200) {
-        setStatus({ type: "success", message: "Message sent successfully!" });
-        setForm({ name: "", email: "", message: "" }); // clear form
+        setStatus({
+          type: "success",
+          message: "Message sent successfully!",
+        });
+        setForm({ name: "", email: "", message: "" });
       }
     } catch (err) {
       console.error(err);
@@ -70,14 +76,23 @@ export default function ContactUs() {
             <div className="bg-red-600 p-3 rounded-full">
               <Mail className="text-white" size={22} />
             </div>
-            <p className="text-gray-300">support@kbtalentbridge.com</p>
+            <p className="text-gray-300">info@kbtalentbridgestudios.com</p>
           </div>
+
           <div className="flex items-center gap-4">
             <div className="bg-red-600 p-3 rounded-full">
               <Phone className="text-white" size={22} />
             </div>
             <p className="text-gray-300">+91-9205300231</p>
           </div>
+
+          <div className="flex items-center gap-4">
+            <div className="bg-red-600 p-3 rounded-full">
+              <Phone className="text-white" size={22} />
+            </div>
+            <p className="text-gray-300">Tollfree : 18002032035</p>
+          </div>
+
           <div className="flex items-center gap-4">
             <div className="bg-red-600 p-3 rounded-full">
               <MapPin className="text-white" size={22} />
@@ -131,13 +146,15 @@ export default function ContactUs() {
               rows="5"
               className="w-full p-3 rounded-lg bg-black border border-gray-700 text-white focus:outline-none focus:border-red-500"
               required
-            ></textarea>
+            />
           </div>
 
           {status && (
             <p
               className={`text-center font-medium ${
-                status.type === "success" ? "text-green-500" : "text-red-500"
+                status.type === "success"
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {status.message}
@@ -162,19 +179,48 @@ export default function ContactUs() {
 }
 
 
-
-
-
-
-
-
-
-
-// // src/components/ContactUs.jsx
+// import { useState } from "react";
 // import { motion } from "framer-motion";
 // import { Mail, Phone, MapPin } from "lucide-react";
+// import axios from "axios";
 
 // export default function ContactUs() {
+//   const [form, setForm] = useState({ name: "", email: "", message: "" });
+//   const [loading, setLoading] = useState(false);
+//   const [status, setStatus] = useState(null);
+
+//   const handleChange = (e) => {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setStatus(null);
+
+//     try {
+//       const res = await axios.post(
+//         "https://my-backend-knk9.onrender.com/api/contact", // ✅ your Render backend URL
+//         form
+//       );
+
+//       if (res.status === 200) {
+//         setStatus({ type: "success", message: "Message sent successfully!" });
+//         setForm({ name: "", email: "", message: "" }); // clear form
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       setStatus({
+//         type: "error",
+//         message:
+//           err.response?.data?.error ||
+//           "Something went wrong. Please try again later.",
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
 //   return (
 //     <div className="bg-black text-white min-h-screen pt-20 pb-20 px-6">
 //       {/* Heading */}
@@ -184,8 +230,10 @@ export default function ContactUs() {
 //         </h1>
 //         <p className="mt-4 text-gray-400">
 //           Have questions or want to work with{" "}
-//           <span className="text-red-400 font-semibold">KB TalentBridge Studio</span>?  
-//           We’d love to hear from you.
+//           <span className="text-red-400 font-semibold">
+//             KB TalentBridge Studio
+//           </span>
+//           ? We’d love to hear from you.
 //         </p>
 //       </div>
 
@@ -203,13 +251,21 @@ export default function ContactUs() {
 //             <div className="bg-red-600 p-3 rounded-full">
 //               <Mail className="text-white" size={22} />
 //             </div>
-//             <p className="text-gray-300">support@kbtalentbridge.com</p>
+//             <p className="text-gray-300">info@kbtalentbridgestudios.com</p>
 //           </div>
 //           <div className="flex items-center gap-4">
 //             <div className="bg-red-600 p-3 rounded-full">
 //               <Phone className="text-white" size={22} />
 //             </div>
 //             <p className="text-gray-300">+91-9205300231</p>
+            
+//           </div>
+//            <div className="flex items-center gap-4">
+//             <div className="bg-red-600 p-3 rounded-full">
+//               <Phone className="text-white" size={22} />
+//             </div>
+//             <p className="text-gray-300">Tollfree -: 18002032035</p>
+            
 //           </div>
 //           <div className="flex items-center gap-4">
 //             <div className="bg-red-600 p-3 rounded-full">
@@ -221,6 +277,7 @@ export default function ContactUs() {
 
 //         {/* Contact Form */}
 //         <motion.form
+//           onSubmit={handleSubmit}
 //           initial={{ x: 50, opacity: 0 }}
 //           whileInView={{ x: 0, opacity: 1 }}
 //           transition={{ duration: 0.6 }}
@@ -231,35 +288,70 @@ export default function ContactUs() {
 //             <label className="block text-gray-300 mb-2">Name</label>
 //             <input
 //               type="text"
+//               name="name"
+//               value={form.name}
+//               onChange={handleChange}
 //               placeholder="Your Name"
 //               className="w-full p-3 rounded-lg bg-black border border-gray-700 text-white focus:outline-none focus:border-red-500"
+//               required
 //             />
 //           </div>
+
 //           <div>
 //             <label className="block text-gray-300 mb-2">Email</label>
 //             <input
 //               type="email"
+//               name="email"
+//               value={form.email}
+//               onChange={handleChange}
 //               placeholder="Your Email"
 //               className="w-full p-3 rounded-lg bg-black border border-gray-700 text-white focus:outline-none focus:border-red-500"
+//               required
 //             />
 //           </div>
+
 //           <div>
 //             <label className="block text-gray-300 mb-2">Message</label>
 //             <textarea
+//               name="message"
+//               value={form.message}
+//               onChange={handleChange}
 //               placeholder="Your Message"
 //               rows="5"
 //               className="w-full p-3 rounded-lg bg-black border border-gray-700 text-white focus:outline-none focus:border-red-500"
+//               required
 //             ></textarea>
 //           </div>
+
+//           {status && (
+//             <p
+//               className={`text-center font-medium ${
+//                 status.type === "success" ? "text-green-500" : "text-red-500"
+//               }`}
+//             >
+//               {status.message}
+//             </p>
+//           )}
+
 //           <motion.button
+//             type="submit"
 //             whileHover={{ scale: 1.05 }}
 //             whileTap={{ scale: 0.95 }}
-//             className="w-full bg-red-600 hover:bg-red-700 transition text-white font-semibold py-3 rounded-lg"
+//             disabled={loading}
+//             className={`w-full ${
+//               loading ? "bg-gray-600" : "bg-red-600 hover:bg-red-700"
+//             } transition text-white font-semibold py-3 rounded-lg`}
 //           >
-//             Send Message
+//             {loading ? "Sending..." : "Send Message"}
 //           </motion.button>
 //         </motion.form>
 //       </div>
 //     </div>
 //   );
 // }
+
+
+
+
+
+

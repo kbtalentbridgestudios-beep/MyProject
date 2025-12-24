@@ -20,7 +20,7 @@ export default function Courses() {
 
   const courses = [
     {
-      title: "🎭 Acting",
+      title: " Acting",
       desc: "Master the art of expression, stage presence, and character building with professional acting techniques.",
       img: actingImg,
       rating: "4.8",
@@ -28,7 +28,7 @@ export default function Courses() {
       hours: "40",
     },
     {
-      title: "🎤 Singing",
+      title: " Singing",
       desc: "Enhance your vocal range, control, and performance skills through guided vocal training.",
       img: singingImg,
       rating: "4.7",
@@ -36,7 +36,7 @@ export default function Courses() {
       hours: "35",
     },
     {
-      title: "🎶 Music",
+      title: " Music",
       desc: "Learn instruments, composition, and fundamentals of music production to create your own sound.",
       img: musicImg,
       rating: "4.6",
@@ -44,7 +44,7 @@ export default function Courses() {
       hours: "50",
     },
     {
-      title: "💃 Dancing",
+      title: " Dancing",
       desc: "Develop rhythm, grace, and confidence across diverse dance forms with expert-led sessions.",
       img: dancingImg,
       rating: "4.9",
@@ -52,7 +52,7 @@ export default function Courses() {
       hours: "45",
     },
     {
-      title: "💄 Makeup",
+      title: " Makeup",
       desc: "Discover professional makeup artistry techniques for stage, screen, and creative styling.",
       img: makeupImg,
       rating: "4.5",
@@ -123,19 +123,19 @@ export default function Courses() {
   return (
     <section className="py-16 px-6 bg-black text-white my-20">
       <h2 className="text-4xl font-semibold mb-12 text-red-600 text-center">
-        📚 Courses We Offer
+        Courses We Offer
       </h2>
 
       <div className="max-w-7xl mx-auto">
         {isMobile ? (
-          // ✅ Mobile: Cards stacked one below another
+          //  Mobile: Cards stacked one below another
           <div className="flex flex-col">
             {courses.map((course, index) => (
               <CourseCard key={index} course={course} index={index} />
             ))}
           </div>
         ) : (
-          // ✅ Desktop: Slider mode
+          //  Desktop: Slider mode
           <Slider {...settings}>
             {courses.map((course, index) => (
               <div key={index} className="px-3">

@@ -1,9 +1,10 @@
 // src/components/AdminSidebar.jsx
-import { FaUserTie, FaUsers, FaBriefcase, FaChartBar, FaCog, FaAppStore, FaEnvelope } from "react-icons/fa";
+import { FaUserTie, FaUsers, FaBriefcase, FaChartBar, FaCog, FaAppStore, FaEnvelope, FaUserCheck } from "react-icons/fa";
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
   const menuItems = [
     { key: "candidates", label: "Candidates", icon: <FaUsers /> },
+    {key: "appliedcandidates", label: "AppliedCandidates", icon: <FaUserCheck/>},
     { key: "employers", label: "Employers", icon: <FaUserTie /> },
     { key: "jobs", label: "Jobs", icon: <FaBriefcase /> },
     {key : "adminjob", label : "MyJob", icon: <FaBriefcase />},

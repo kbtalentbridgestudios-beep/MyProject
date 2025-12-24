@@ -35,10 +35,10 @@ export default function Footer() {
             Support
           </h3>
           <ul className="space-y-2 text-base font-normal">
-            <li><a href="/" className="hover:text-red-400 transition">FAQ</a></li>
-            <li><a href="/about" className="hover:text-red-400 transition">Help Center</a></li>
-            <li><a href="/login" className="hover:text-red-400 transition">Privacy Policy</a></li>
-            <li><a href="/register" className="hover:text-red-400 transition">Terms of Service</a></li>
+            <li><a href="/faq" className="hover:text-red-400 transition">FAQ</a></li>
+            <li><a href="/contact" className="hover:text-red-400 transition">Help Center</a></li>
+            <li><a href="/privacy" className="hover:text-red-400 transition">Privacy Policy</a></li>
+            <li><a href="/terms" className="hover:text-red-400 transition">Terms of Service</a></li>
           </ul>
         </div>
 
@@ -55,9 +55,11 @@ export default function Footer() {
           </p>
           <p className="font-normal mt-3">
             Email:{" "}
-            <a href="mailto:xyz@gmail.com" className="hover:text-red-400">
-              xyz@gmail.com
-            </a>
+            <a
+               href="mailto:kbtalentbridgestudios@gmail.com?subject=Inquiry%20From%20Website&body=Hello%2C%20I%20would%20like%20to%20know%20more..."
+               className="hover:text-red-400">
+               kbtalentbridgestudios@gmail.com
+               </a>
           </p>
           <p className="font-normal mt-2">
             Mobile:{" "}

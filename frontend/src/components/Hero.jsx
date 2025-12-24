@@ -58,10 +58,10 @@ function useTypewriter(words, speed = 120, pause = 1500) {
 
 export default function Hero() {
   const typedText = useTypewriter([
-    "Build Your Dream 🚀",
-    "Showcase Your Talent 🎬",
-    "Grow Your Career 🌟",
-    "Join Creative Workshops 🎨",
+    "Build Your Dream ",
+    "Showcase Your Talent ",
+    "Grow Your Career ",
+    "Join Creative Workshops ",
   ]);
 
   // State for current images of each section
