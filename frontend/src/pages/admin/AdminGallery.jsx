@@ -13,7 +13,7 @@ export default function AdminGallery() {
   const token = localStorage.getItem("token");
   const API_URL =
     import.meta.env.REACT_APP_API_URL ||
-    "https://myproject-d7zr.onrender.com/api";
+    "https://my-backend-knk9.onrender.com/api";
 
   // Fetch gallery
   const fetchGallery = async () => {
