@@ -1,4 +1,3 @@
-// backend/src/server.js
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -12,7 +11,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
 import employerRoutes from "./routes/employerRoutes.js";
 import jobRoutes from "./routes/jobs.js";
-import uploadRoutes from "./routes/fileUpload.js";         
+import uploadRoutes from "./routes/fileUpload.js";
 import galleryRoutes from "./routes/galleryRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import adminJobRoutes from "./routes/adminJobRoutes.js";
@@ -29,69 +28,57 @@ import { cloudinaryConnect } from "./config/cloudinary.js";
 dotenv.config();
 const app = express();
 
+/* -------------------------------------------------- */
+/*  PATH SETUP                                        */
+/* -------------------------------------------------- */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ------------------------------------------------------
-// 1) CORS
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  1️⃣ CORS (SINGLE SOURCE OF TRUTH)                  */
+/* -------------------------------------------------- */
 const allowedOrigins = [
   "http://localhost:5173",
   "https://kbtalentbridgestudios.com",
   "https://www.kbtalentbridgestudios.com",
-  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      if (process.env.ALLOW_ALL_ORIGINS === "true")
+      if (!origin) return callback(null, true); // mobile apps, curl
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      return callback(new Error("CORS policy: origin not allowed"), false);
+      }
+      return callback(new Error("CORS not allowed"), false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ------------------------------------------------------
-// 2) 🔥 PHONEPE WEBHOOK — MUST BE BEFORE JSON
-// ------------------------------------------------------
+// ✅ Let cors handle OPTIONS
+app.options("*", cors());
+
+/* -------------------------------------------------- */
+/*  2️⃣ PHONEPE WEBHOOK (RAW BODY FIRST)               */
+/* -------------------------------------------------- */
 app.use(
   "/api/webhooks/phonepe",
   express.raw({ type: "application/json" })
 );
 app.use("/api/webhooks/phonepe", phonepeWebhook);
 
-// ------------------------------------------------------
-// 3) BODY PARSER (NORMAL APIs ONLY)
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  3️⃣ BODY PARSERS (NORMAL APIs)                     */
+/* -------------------------------------------------- */
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// ------------------------------------------------------
-// 4) PREFLIGHT
-// ------------------------------------------------------
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-    );
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// ------------------------------------------------------
-// 5) FILE UPLOAD
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  4️⃣ FILE UPLOAD                                   */
+/* -------------------------------------------------- */
 const TEMP_DIR = path.join(__dirname, "../tmp");
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
@@ -103,23 +90,22 @@ app.use(
     tempFileDir: TEMP_DIR,
     createParentPath: true,
     preserveExtension: true,
-    abortOnLimit: false,
-    limits: { fileSize: 100 * 1024 * 1024 },
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   })
 );
 
-// ------------------------------------------------------
-// 6) CLOUDINARY
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  5️⃣ CLOUDINARY                                    */
+/* -------------------------------------------------- */
 try {
   cloudinaryConnect();
-} catch (e) {
-  console.warn("Cloudinary connection failed:", e?.message || e);
+} catch (err) {
+  console.warn("Cloudinary connection failed:", err?.message || err);
 }
 
-// ------------------------------------------------------
-// 7) ROUTES
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  6️⃣ ROUTES                                        */
+/* -------------------------------------------------- */
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/candidate", candidateRoutes);
@@ -134,41 +120,223 @@ app.use("/api/payments", paymentRoutes);
 app.use("/news-admin", newsAdminRoutes);
 app.use("/news", newsRoutes);
 
-// ------------------------------------------------------
-// 8) HEALTH
-// ------------------------------------------------------
-app.get("/health", (req, res) =>
-  res.json({ status: "ok", uptime: process.uptime() })
-);
+/* -------------------------------------------------- */
+/*  7️⃣ HEALTH CHECK                                  */
+/* -------------------------------------------------- */
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+  });
+});
 
-// ------------------------------------------------------
-// 9) STATIC FRONTEND
-// ------------------------------------------------------
+/* -------------------------------------------------- */
+/*  8️⃣ STATIC FRONTEND (OPTIONAL)                     */
+/* -------------------------------------------------- */
 const frontendPath = path.join(__dirname, "../../frontend/dist");
-app.use(express.static(frontendPath));
-app.get(/.*/, (req, res) =>
-  res.sendFile(path.join(frontendPath, "index.html"))
-);
 
-// ------------------------------------------------------
-// 10) DB + SERVER START
-// ------------------------------------------------------
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  app.get("*", (req, res) =>
+    res.sendFile(path.join(frontendPath, "index.html"))
+  );
+}
+
+/* -------------------------------------------------- */
+/*  9️⃣ DATABASE + SERVER START                        */
+/* -------------------------------------------------- */
 mongoose
   .connect(process.env.MONGO_URI)
   .then(async () => {
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected");
+
     await createAdmin();
+
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () =>
-      console.log(`Server running on port ${PORT}`)
+      console.log(`🚀 Server running on port ${PORT}`)
     );
   })
   .catch((err) => {
-    console.error("MongoDB Error:", err);
+    console.error("❌ MongoDB connection failed:", err);
     process.exit(1);
   });
 
 export default app;
+
+
+// // backend/src/server.js
+// import express from "express";
+// import mongoose from "mongoose";
+// import dotenv from "dotenv";
+// import cors from "cors";
+// import path from "path";
+// import { fileURLToPath } from "url";
+// import fs from "fs";
+
+// import authRoutes from "./routes/authRoutes.js";
+// import adminRoutes from "./routes/adminRoutes.js";
+// import candidateRoutes from "./routes/candidateRoutes.js";
+// import employerRoutes from "./routes/employerRoutes.js";
+// import jobRoutes from "./routes/jobs.js";
+// import uploadRoutes from "./routes/fileUpload.js";         
+// import galleryRoutes from "./routes/galleryRoutes.js";
+// import contactRoutes from "./routes/contactRoutes.js";
+// import adminJobRoutes from "./routes/adminJobRoutes.js";
+// import jobCategoryRoutes from "./routes/jobCategoryRoutes.js";
+// import paymentRoutes from "./routes/paymentRoutes.js";
+// import newsAdminRoutes from "./routes/newsAdminRoutes.js";
+// import newsRoutes from "./routes/newsRoutes.js";
+// import phonepeWebhook from "./routes/phonepeWebhook.js";
+
+// import createAdmin from "./config/adminSetup.js";
+// import fileUpload from "express-fileupload";
+// import { cloudinaryConnect } from "./config/cloudinary.js";
+
+// dotenv.config();
+// const app = express();
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // ------------------------------------------------------
+// // 1) CORS
+// // ------------------------------------------------------
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "https://kbtalentbridgestudios.com",
+//   "https://www.kbtalentbridgestudios.com",
+//   process.env.FRONTEND_URL,
+// ].filter(Boolean);
+
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) return callback(null, true);
+//       if (process.env.ALLOW_ALL_ORIGINS === "true")
+//         return callback(null, true);
+//       return callback(new Error("CORS policy: origin not allowed"), false);
+//     },
+//     credentials: true,
+//   })
+// );
+
+// // ------------------------------------------------------
+// // 2) 🔥 PHONEPE WEBHOOK — MUST BE BEFORE JSON
+// // ------------------------------------------------------
+// app.use(
+//   "/api/webhooks/phonepe",
+//   express.raw({ type: "application/json" })
+// );
+// app.use("/api/webhooks/phonepe", phonepeWebhook);
+
+// // ------------------------------------------------------
+// // 3) BODY PARSER (NORMAL APIs ONLY)
+// // ------------------------------------------------------
+// app.use(express.json({ limit: "50mb" }));
+// app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// // ------------------------------------------------------
+// // 4) PREFLIGHT
+// // ------------------------------------------------------
+// app.use((req, res, next) => {
+//   if (req.method === "OPTIONS") {
+//     res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+//     res.header(
+//       "Access-Control-Allow-Headers",
+//       "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//     );
+//     res.header(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+//     );
+//     return res.sendStatus(200);
+//   }
+//   next();
+// });
+
+// // ------------------------------------------------------
+// // 5) FILE UPLOAD
+// // ------------------------------------------------------
+// const TEMP_DIR = path.join(__dirname, "../tmp");
+// if (!fs.existsSync(TEMP_DIR)) {
+//   fs.mkdirSync(TEMP_DIR, { recursive: true });
+// }
+
+// app.use(
+//   fileUpload({
+//     useTempFiles: true,
+//     tempFileDir: TEMP_DIR,
+//     createParentPath: true,
+//     preserveExtension: true,
+//     abortOnLimit: false,
+//     limits: { fileSize: 100 * 1024 * 1024 },
+//   })
+// );
+
+// // ------------------------------------------------------
+// // 6) CLOUDINARY
+// // ------------------------------------------------------
+// try {
+//   cloudinaryConnect();
+// } catch (e) {
+//   console.warn("Cloudinary connection failed:", e?.message || e);
+// }
+
+// // ------------------------------------------------------
+// // 7) ROUTES
+// // ------------------------------------------------------
+// app.use("/api/auth", authRoutes);
+// app.use("/api/admin", adminRoutes);
+// app.use("/api/candidate", candidateRoutes);
+// app.use("/api/employer", employerRoutes);
+// app.use("/api/jobs", jobRoutes);
+// app.use("/api/v1/upload", uploadRoutes);
+// app.use("/api/gallery", galleryRoutes);
+// app.use("/api/contact", contactRoutes);
+// app.use("/api/admin/jobs", adminJobRoutes);
+// app.use("/api/jobcategories", jobCategoryRoutes);
+// app.use("/api/payments", paymentRoutes);
+// app.use("/news-admin", newsAdminRoutes);
+// app.use("/news", newsRoutes);
+
+// // ------------------------------------------------------
+// // 8) HEALTH
+// // ------------------------------------------------------
+// app.get("/health", (req, res) =>
+//   res.json({ status: "ok", uptime: process.uptime() })
+// );
+
+// // ------------------------------------------------------
+// // 9) STATIC FRONTEND
+// // ------------------------------------------------------
+// const frontendPath = path.join(__dirname, "../../frontend/dist");
+// app.use(express.static(frontendPath));
+// app.get(/.*/, (req, res) =>
+//   res.sendFile(path.join(frontendPath, "index.html"))
+// );
+
+// // ------------------------------------------------------
+// // 10) DB + SERVER START
+// // ------------------------------------------------------
+// mongoose
+//   .connect(process.env.MONGO_URI)
+//   .then(async () => {
+//     console.log("MongoDB connected");
+//     await createAdmin();
+//     const PORT = process.env.PORT || 5000;
+//     app.listen(PORT, () =>
+//       console.log(`Server running on port ${PORT}`)
+//     );
+//   })
+//   .catch((err) => {
+//     console.error("MongoDB Error:", err);
+//     process.exit(1);
+//   });
+
+// export default app;
 
 
 
