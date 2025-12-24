@@ -1,6 +1,6 @@
 // src/utils/api.js
 export const getBase = () =>
-  (import.meta.env.VITE_API_URL || "https://my-backend-knk9.onrender.com").replace(/\/+$/, "");
+  (import.meta.env.VITE_API_URL || "https://myproject-d7zr.onrender.com").replace(/\/+$/, "");
 
 export const apiUrl = (path = "") => {
   const base = getBase();
